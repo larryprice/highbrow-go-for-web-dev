@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -22,6 +24,12 @@ type Result struct {
 }
 
 func main() {
+	db, err := gorm.Open("sqlite3", "test.db")
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+
 	templates := template.Must(template.ParseFiles("templates/index.html"))
 
 	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
