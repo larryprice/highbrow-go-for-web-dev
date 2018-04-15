@@ -39,7 +39,18 @@ func main() {
 	defer db.Close()
 	db.AutoMigrate(&Book{})
 
-	templates := template.Must(template.ParseFiles("templates/index.html"))
+	libraryTemplates := template.Must(
+		template.ParseFiles("templates/layout.html", "templates/library.html"))
+	searchTemplates := template.Must(
+		template.ParseFiles("templates/layout.html", "templates/search.html"))
+
+	http.HandleFunc("/removebook", func(w http.ResponseWriter, r *http.Request) {
+		var book Book
+		db.Find(&book, r.FormValue("bookId"))
+		db.Delete(book)
+
+		http.Redirect(w, r, "/", 302)
+	})
 
 	http.HandleFunc("/addbook", func(w http.ResponseWriter, r *http.Request) {
 		res, e := find(r.FormValue("bookId"))
@@ -53,9 +64,7 @@ func main() {
 			Classification: res.Classification.MostPopular,
 		})
 
-		if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		http.Redirect(w, r, "/", 302)
 	})
 
 	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
@@ -65,13 +74,16 @@ func main() {
 		}
 
 		p := SearchPage{Query: r.FormValue("search"), Results: results}
-		if err := templates.ExecuteTemplate(w, "index.html", p); err != nil {
+		if err := searchTemplates.ExecuteTemplate(w, "layout", p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+		var p struct{ Books []Book }
+		db.Find(&p.Books)
+
+		if err := libraryTemplates.ExecuteTemplate(w, "layout", p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})

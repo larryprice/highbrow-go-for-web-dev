@@ -1,0 +1,13 @@
+{{define "layout"}}
+  <html>
+    <head><title>Go for Web Development</title></head>
+    <body>
+      <form action="/search" style="display: inline;">
+        <input name="search" />
+        <input type="submit" value="Search" />
+      </form>
+
+      {{template "content" .}}
+    </body>
+  </html>
+{{end}}
