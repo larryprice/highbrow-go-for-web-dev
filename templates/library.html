@@ -1,5 +1,29 @@
 {{define "content"}}
-  <p style="text-align: center;">Your Library Contains {{len .Books}} Books</b></p>
+  <p style="text-align: center;">Showing {{len .Books}} Books From Your Library</b></p>
+
+  <form action="/" style="text-align: center;">
+    <select name="sort">
+      <option value="title">Sort By Title</option>
+      <option value="author">Sort By Author</option>
+      <option value="classification">Sort By Classification</option>
+    </select>
+    <select name="filter">
+      <option value="all">Show All</option>
+      <option value="000">
+        Show 000 - Computer science, information, general works
+      </option>
+      <option value="100">Show 100 - Philosophy, psychology</option>
+      <option value="200">Show 200 - Religion</option>
+      <option value="300">Show 300 - Social Sciences</option>
+      <option value="400">Show 400 - Language</option>
+      <option value="500">Show 500 - Science</option>
+      <option value="600">Show 600 - Technology</option>
+      <option value="700">Show 700 - Art, recreation</option>
+      <option value="800">Show 800 - Literature</option>
+      <option value="900">Show 900 - History, geography</option>
+    </select>
+    <input type="submit" value="Submit" />
+  </form>
 
   <table width="50%" style="margin: auto;">
     <thead>
