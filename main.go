@@ -5,12 +5,14 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 )
 
@@ -43,7 +45,13 @@ type User struct {
 }
 
 func main() {
-	db, err := gorm.Open("sqlite3", "test.db")
+	dbURL := os.Getenv("DATABASE_URL")
+	dialect := "postgres"
+	if dbURL == "" {
+		dbURL = "test.db"
+		dialect = "sqlite3"
+	}
+	db, err := gorm.Open(dialect, dbURL)
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -168,7 +176,11 @@ func main() {
 		}
 	}))
 
-	fmt.Println(http.ListenAndServe(":4000", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "4000"
+	}
+	fmt.Println(http.ListenAndServe(":"+port, nil))
 }
 
 func search(query string) ([]Result, error) {
