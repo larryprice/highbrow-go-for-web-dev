@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"github.com/jinzhu/gorm"
@@ -31,22 +32,14 @@ type Book struct {
 	Author         string
 	OWI            string
 	Classification string
+	UserID         uint
 }
 
 type User struct {
 	gorm.Model
 	Username string
 	Password []byte
-}
-
-func withAuth(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if cookie, err := r.Cookie("user"); err != nil || cookie.Value == "" {
-			http.Redirect(w, r, "/login", 302)
-		} else {
-			next.ServeHTTP(w, r)
-		}
-	}
+	Books    []Book
 }
 
 func main() {
@@ -55,8 +48,27 @@ func main() {
 		panic("failed to connect database")
 	}
 	defer db.Close()
-	db.AutoMigrate(&Book{})
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&Book{}, &User{})
+
+	withAuth := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			cookie, err := r.Cookie("user")
+			if err != nil || cookie.Value == "" {
+				http.Redirect(w, r, "/login", 302)
+				return
+			}
+
+			var user User
+			db.Find(&user, cookie.Value)
+			if user.ID == 0 {
+				http.Redirect(w, r, "/login", 302)
+				return
+			}
+
+			next.ServeHTTP(w,
+				r.WithContext(context.WithValue(r.Context(), "user", user)))
+		}
+	}
 
 	libraryTemplates := template.Must(
 		template.ParseFiles("templates/layout.html", "templates/library.html"))
@@ -117,6 +129,7 @@ func main() {
 			Author:         res.BookData.Author,
 			OWI:            res.BookData.ID,
 			Classification: res.Classification.MostPopular,
+			UserID:         r.Context().Value("user").(User).ID,
 		})
 
 		http.Redirect(w, r, "/", 302)
@@ -147,7 +160,8 @@ func main() {
 				" AND " + strconv.Itoa(filterInt+100)
 		}
 
-		db.Order(order).Where(where).Find(&p.Books)
+		user := r.Context().Value("user").(User)
+		db.Model(&user).Order(order).Where(where).Related(&p.Books)
 
 		if err := libraryTemplates.ExecuteTemplate(w, "layout", p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
