@@ -1,7 +1,28 @@
 {
 	"comment": "",
+	"heroku": {
+		"goVersion": "go1.8"
+	},
 	"ignore": "",
 	"package": [
+		{
+			"checksumSHA1": "fyQ6D2LUvzhSnGxDSXPARWONPtg=",
+			"path": "github.com/erikstmartin/go-testdb",
+			"revision": "8d10e4a1bae52cd8b81ffdec3445890d6dccab3d",
+			"revisionTime": "2016-02-19T21:45:06Z"
+		},
+		{
+			"checksumSHA1": "8EdhZO92/eklxbuSOftvk2YRUao=",
+			"path": "github.com/jinzhu/gorm",
+			"revision": "6842b49a1ad0feb6b93be830fe63a682cf853ada",
+			"revisionTime": "2018-04-16T14:20:02Z"
+		},
+		{
+			"checksumSHA1": "MUh01tdtfvdcl3Xd48nNbItsgJc=",
+			"path": "github.com/jinzhu/now",
+			"revision": "b7dfa9a2450405d4ee01eb238dcb873b3dc5336c",
+			"revisionTime": "2018-03-14T13:20:04Z"
+		},
 		{
 			"checksumSHA1": "ZGXubONzoAA9hinF2141mvUCk78=",
 			"path": "github.com/lib/pq",
