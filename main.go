@@ -176,7 +176,11 @@ func main() {
 		}
 	}))
 
-	fmt.Println(http.ListenAndServe(":4000", nil))
+  port := os.Getenv("PORT")
+  if port == "" {
+    port = "4000"
+  }
+	fmt.Println(http.ListenAndServe(":" + port, nil))
 }
 
 func search(query string) ([]Result, error) {
