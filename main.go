@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/xml"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 type SearchPage struct {
@@ -12,23 +15,22 @@ type SearchPage struct {
 }
 
 type Result struct {
-	Title  string
-	Author string
-	Year   int
-	ID     string
+	Title  string `xml:"title,attr"`
+	Author string `xml:"author,attr"`
+	Year   int    `xml:"hyr,attr"`
+	ID     string `xml:"owi,attr"`
 }
 
 func main() {
 	templates := template.Must(template.ParseFiles("templates/index.html"))
 
 	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
-		results := []Result{
-			Result{"1984", "Orwell", 1950, "123"},
-			Result{"Persuasion", "Austen", 1817, "234"},
-			Result{"Holes", "Sachar", 2000, "345"},
+		results, e := search(r.FormValue("search"))
+		if e != nil {
+			http.Error(w, e.Error(), http.StatusInternalServerError)
 		}
-		p := SearchPage{Query: r.FormValue("search"), Results: results}
 
+		p := SearchPage{Query: r.FormValue("search"), Results: results}
 		if err := templates.ExecuteTemplate(w, "index.html", p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -41,4 +43,33 @@ func main() {
 	})
 
 	fmt.Println(http.ListenAndServe(":4000", nil))
+}
+
+func search(query string) ([]Result, error) {
+	var response struct {
+		Results []Result `xml:"works>work"`
+	}
+
+	body, err := fetch("title=" + url.QueryEscape(query))
+
+	if err != nil {
+		return []Result{}, err
+	}
+
+	err = xml.Unmarshal(body, &response)
+	return response.Results, err
+}
+
+func fetch(q string) ([]byte, error) {
+	var resp *http.Response
+	var err error
+	url := "http://classify.oclc.org/classify2/Classify?summary=true&" + q
+
+	if resp, err = http.Get(url); err != nil {
+		return []byte{}, err
+	}
+
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
 }
