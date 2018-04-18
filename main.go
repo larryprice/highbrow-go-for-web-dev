@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 type SearchPage struct {
@@ -81,7 +82,18 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var p struct{ Books []Book }
-		db.Find(&p.Books)
+
+		order := r.FormValue("sort")
+		if order != "title" && order != "author" && order != "classification" {
+			order = "title"
+		}
+		where := ""
+		if filterInt, err := strconv.Atoi(r.FormValue("filter")); err == nil {
+			where = "classification BETWEEN " + r.FormValue("filter") +
+				" AND " + strconv.Itoa(filterInt+100)
+		}
+
+		db.Order(order).Where(where).Find(&p.Books)
 
 		if err := libraryTemplates.ExecuteTemplate(w, "layout", p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
