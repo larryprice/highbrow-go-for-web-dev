@@ -8,6 +8,10 @@
       </form>
 
       {{template "content" .}}
+
+      <form action="/auth/logout">
+        <input type="submit" value="Log Out" />
+      </form>
     </body>
   </html>
 {{end}}

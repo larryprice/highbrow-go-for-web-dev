@@ -25,6 +25,18 @@
 			"path": "github.com/mattn/go-sqlite3",
 			"revision": "1024cb20b4711d09e33e5d3fd132ef88f998f809",
 			"revisionTime": "2018-04-17T14:31:54Z"
+		},
+		{
+			"checksumSHA1": "oCH3J96RWvO8W4xjix47PModpio=",
+			"path": "golang.org/x/crypto/bcrypt",
+			"revision": "d6449816ce06963d9d136eee5a56fca5b0616e7e",
+			"revisionTime": "2018-04-11T15:42:50Z"
+		},
+		{
+			"checksumSHA1": "oVPHWesOmZ02vLq2fglGvf+AMgk=",
+			"path": "golang.org/x/crypto/blowfish",
+			"revision": "d6449816ce06963d9d136eee5a56fca5b0616e7e",
+			"revisionTime": "2018-04-11T15:42:50Z"
 		}
 	],
 	"rootPath": "highbrow-go-for-web-dev"
