@@ -23,14 +23,40 @@ type Result struct {
 	ID     string `xml:"owi,attr"`
 }
 
+type Book struct {
+	gorm.Model
+	Title          string
+	Author         string
+	OWI            string
+	Classification string
+}
+
 func main() {
 	db, err := gorm.Open("sqlite3", "test.db")
 	if err != nil {
 		panic("failed to connect database")
 	}
 	defer db.Close()
+	db.AutoMigrate(&Book{})
 
 	templates := template.Must(template.ParseFiles("templates/index.html"))
+
+	http.HandleFunc("/addbook", func(w http.ResponseWriter, r *http.Request) {
+		res, e := find(r.FormValue("bookId"))
+		if e != nil {
+			http.Error(w, e.Error(), http.StatusInternalServerError)
+		}
+		db.Create(&Book{
+			Title:          res.BookData.Title,
+			Author:         res.BookData.Author,
+			OWI:            res.BookData.ID,
+			Classification: res.Classification.MostPopular,
+		})
+
+		if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
 
 	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
 		results, e := search(r.FormValue("search"))
@@ -66,6 +92,29 @@ func search(query string) ([]Result, error) {
 
 	err = xml.Unmarshal(body, &response)
 	return response.Results, err
+}
+
+type BookResponse struct {
+	BookData struct {
+		Title  string `xml:"title,attr"`
+		Author string `xml:"author,attr"`
+		ID     string `xml:"owi,attr"`
+	} `xml:"work"`
+	Classification struct {
+		MostPopular string `xml:"sfa,attr"`
+	} `xml:"recommendations>ddc>mostPopular"`
+}
+
+func find(id string) (BookResponse, error) {
+	var response BookResponse
+	body, err := fetch("owi=" + url.QueryEscape(id))
+
+	if err != nil {
+		return BookResponse{}, err
+	}
+
+	err = xml.Unmarshal(body, &response)
+	return response, err
 }
 
 func fetch(q string) ([]byte, error) {
