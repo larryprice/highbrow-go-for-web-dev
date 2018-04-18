@@ -2,7 +2,7 @@
 
 Go web application course built for Highbrow.
 
-You'll need go 1.7 and sqlite installed.
+You'll need go 1.8.x and sqlite installed.
 
 All the dependencies will be vendored for your convenience.
 
