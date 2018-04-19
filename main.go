@@ -87,13 +87,13 @@ func main() {
 		if order != "title" && order != "author" && order != "classification" {
 			order = "title"
 		}
-		where := ""
-		if filterInt, err := strconv.Atoi(r.FormValue("filter")); err == nil {
-			where = "classification BETWEEN " + r.FormValue("filter") +
-				" AND " + strconv.Itoa(filterInt+100)
-		}
 
-		db.Order(order).Where(where).Find(&p.Books)
+		if filterInt, err := strconv.Atoi(r.FormValue("filter")); err == nil {
+			db.Order(order).Where("classification BETWEEN ? AND ?",
+				r.FormValue("filter"), strconv.Itoa(filterInt+100)).Find(&p.Books)
+		} else {
+			db.Order(order).Find(&p.Books)
+		}
 
 		if err := libraryTemplates.ExecuteTemplate(w, "layout", p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
