@@ -154,14 +154,14 @@ func main() {
 		if order != "title" && order != "author" && order != "classification" {
 			order = "title"
 		}
-		where := ""
-		if filterInt, err := strconv.Atoi(r.FormValue("filter")); err == nil {
-			where = "classification BETWEEN " + r.FormValue("filter") +
-				" AND " + strconv.Itoa(filterInt+100)
-		}
 
 		user := r.Context().Value("user").(User)
-		db.Model(&user).Order(order).Where(where).Related(&p.Books)
+		if filterInt, err := strconv.Atoi(r.FormValue("filter")); err == nil {
+			db.Model(&user).Order(order).Where("classification BETWEEN ? AND ?",
+				r.FormValue("filter"), strconv.Itoa(filterInt+100)).Related(&p.Books)
+		} else {
+			db.Model(&user).Order(order).Related(&p.Books)
+		}
 
 		if err := libraryTemplates.ExecuteTemplate(w, "layout", p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
